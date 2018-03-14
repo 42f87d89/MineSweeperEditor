@@ -1,0 +1,37 @@
+button {
+    width: 1.5em;
+    height: 1.5em;
+    margin: 0em;
+    padding: 0em;
+    font-size: initial;
+}
+
+button#hidden {
+    background-color: #888;
+    color: #888;
+}
+
+button#empty {
+    background-color: #fff;
+}
+
+button#zero {
+    background-color: #fff;
+    color: #fff;
+}
+
+button#mine {
+    background-color: #000;
+    color: #000;
+}
+
+button#flag {
+    background-color: #a11;
+    color: #a11;
+}
+
+div {
+    border: 0em;
+    margin: 0em;
+    padding: 0em;
+}
