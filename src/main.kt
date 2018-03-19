@@ -75,5 +75,4 @@ fun setUpField(field: Minefield) {
         main.appendChild(curRow)
     }
     document.body!!.appendChild(main)
-    println(serialize(f))
 }

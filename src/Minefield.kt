@@ -34,28 +34,38 @@ fun Minefield.toIterator(): Iterator<Spot> {
 }
 
 fun Minefield.around(x: Int, y: Int): Iterator<Pair<Int, Int>> {
-    val a = this
-    println("$x,$y")
-    return object : Iterator<Pair<Int, Int>> {
-        val lowI = if (x - 1 > 0) -1 else 0
-        var i = lowI
-        var j = if (y - 1 > 0) -1 else 0
+    val height = this.height
+    val width = this.width
+    val iter = object : Iterator<Pair<Int, Int>> {
+        val maxI = if(x+1<width) 1 else 0
+        val maxJ = if(y+1<height) 1 else 0
+        val minI = if(x-1>=0) -1 else 0
+        val minJ = if(y-1>=0) -1 else 0
+        //future position
+        var i = minI
+        var j = minJ
 
         override fun hasNext(): Boolean {
-            println("$i,$j,${!(i == 1 && j == 1) || !(x + i < a.width - 1 && y + j < a.height - 1)}")
-            return !(i >= 1 && j >= 1)
+            return j <= maxJ
         }
 
         override fun next(): Pair<Int, Int> {
-            if (i < 1) i += 1
-            else {
-                i = lowI
+            val next = Pair(x+i, y+j)
+            squareNext()
+            if (i == 0 && j == 0) squareNext()
+            return next
+        }
+
+        fun squareNext() {
+            i += 1
+            if (i > maxI) {
+                i = minI
                 j += 1
             }
-            if (i == 0 && j == 0) i = 1
-            return Pair(i + x, j + y)
         }
     }
+    if (iter.minI == 0 && iter.minJ == 0) iter.squareNext()//this only happens if the width of the field is 1
+    return iter
 }
 
 fun Minefield.getMines(x: Int, y: Int): Int {
@@ -68,27 +78,17 @@ fun Minefield.getMines(x: Int, y: Int): Int {
 
 fun Minefield.getFlags(x: Int, y: Int): Int {
     var result = 0
-    for (i in -1..1) {
-        for (j in -1..1) {
-            if (i == 0 && j == 0) continue
-            if (y + i < 0 || y + i >= this.size) continue
-            if (x + j < 0 || x + j >= this[0].size) continue
-            if (this[y + i][x + j].state == SpotState.Flagged) result += 1
-        }
+    for ((i, j) in this.around(x, y)) {
+            if (this[j][i].state == SpotState.Flagged) result += 1
     }
     return result
 }
 
 fun Minefield.unhide(x: Int, y: Int) {
     this[y][x].state = SpotState.Shown
-    for (i in -1..1) {
-        for (j in -1..1) {
-            if (i == 0 && j == 0) continue
-            if (y + i < 0 || y + i >= this.size) continue
-            if (x + j < 0 || x + j >= this[0].size) continue
-            if (getFlags(x, y) != getMines(x, y)) continue
-            if (this[y + i][x + j].state == SpotState.Hidden) unhide(x + j, y + i)
-        }
+    for ((i, j) in this.around(x, y)) {
+        if (getFlags(x, y) != getMines(x, y)) break
+        if (this[j][i].state == SpotState.Hidden) unhide(i, j)
     }
 
 }
