@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
                 "[ [ [ [ [ [ [X[X[ [X[X[ [ [ [ [ \n" +
                 "[ [ [ [ [ [ [X[ [ [ [X[ [ [ [ [ \n" +
                 "[ [ [X[X[X[X[X[ [ [ [X[X[ [ [ [ ")))
-    val buttons = ButtonField(mainField)
+    val buttons = ButtonField(Minefield(15,15))
     window.onload = { buttons.setUpField()}
 }
 

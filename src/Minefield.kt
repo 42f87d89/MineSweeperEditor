@@ -1,4 +1,4 @@
-import kotlin.js.Math.random
+import kotlin.js.Math.random;
 
 enum class SpotState {
     Hidden,
@@ -23,8 +23,7 @@ fun Minefield.toIterator(): Iterator<Spot> {
             val result = a[y][x]
             if (x < a.width - 1) {
                 x += 1
-            }
-            else {
+            } else {
                 x = 0
                 y += 1
             }
@@ -103,9 +102,9 @@ fun serialize(f: Minefield): String {
         var result = 0
         if (spot.mine) result += 1
         result += when (spot.state) {
-            SpotState.Shown -> SpotState.Shown.ordinal*2
-            SpotState.Hidden -> SpotState.Hidden.ordinal*2
-            SpotState.Flagged -> SpotState.Flagged.ordinal*2
+            SpotState.Shown -> SpotState.Shown.ordinal * 2
+            SpotState.Hidden -> SpotState.Hidden.ordinal * 2
+            SpotState.Flagged -> SpotState.Flagged.ordinal * 2
         }
         return result
     }
@@ -147,7 +146,7 @@ fun serialize(f: Minefield): String {
     var i = 0
     for (s in iter) {
         var num = numerify(s)
-        if (iter.hasNext() && i<f.width) num += 6 * numerify(iter.next())
+        if (iter.hasNext() && i < f.width) num += 6 * numerify(iter.next())
         else i = 0
         result += base36(num)
     }
@@ -156,7 +155,7 @@ fun serialize(f: Minefield): String {
 
 fun deserialize(data: String): Minefield {
     fun denumerify(n: Int): Spot {
-        val statenum = n/2
+        val statenum = n / 2
         return Spot(
                 when (statenum) {
                     SpotState.Shown.ordinal -> SpotState.Shown
@@ -197,30 +196,31 @@ fun deserialize(data: String): Minefield {
             else -> return n.toString().toInt()
         }
     }
+
     val asd = data.split(' ')
     val field = asd[1]
     val width = asd[0].toInt()
-    val height = field.length/width*2
+    val height = field.length / width * 2
     val result = Minefield(width, height)
 
     var i = 0
     var j = 0
     for (c in field) {
         val num = base36(c)
-        val spot1 = denumerify(num%6)
+        val spot1 = denumerify(num % 6)
         result[j][i].state = spot1.state
         result[j][i].mine = spot1.mine
         i += 1
-        if (i > width-1) {
+        if (i > width - 1) {
             i = 0
             j += 1
             continue
         }
-        val spot2 = denumerify((num - num%6)/6)
+        val spot2 = denumerify((num - num % 6) / 6)
         result[j][i].state = spot2.state
         result[j][i].mine = spot2.mine
         i += 1
-        if (i > width-1) {
+        if (i > width - 1) {
             i = 0
             j += 1
         }
@@ -247,10 +247,44 @@ fun fromASCII(f: String): Minefield {
     return Minefield(width, height, field)
 }
 
-fun makeRandom(): Minefield {
-    val f = Minefield(20, 20)
-    for (s in f.toIterator()) {
-        s.mine = random()<0.2
+fun Minefield.makeRandom(x: Int, y: Int) {
+    for (s in this.toIterator()) {
+        s.state = SpotState.Hidden
+        s.mine = random() < 0.3
     }
-    return f
+    for ((a, b) in this.around(x, y)) {
+        this[b][a].mine = false
+    }
+    this[y][x].mine = false
+}
+
+fun Minefield.makeSolvable(x: Int, y: Int, p: Double) {
+    val r = 1
+    for ((a, b) in this.around(x, y)) {
+        this[b][a].mine = false
+    }
+    this[y][x].mine = false
+
+    inline fun around(f: (Int, Int) -> Unit) {
+        var i = x - r
+        var j = y - r
+        while (true) {
+            f(i, j)
+            if (j == y - r && i < x + r) {
+                i++
+            } else if (i == x + r && j < y + r) {
+                j++
+            } else if (j == y + r && i > x - r) {
+                i--
+            } else if (i == x - r && j > y - r) {
+                j--
+            }
+        }
+    }
+
+    around { i, j ->
+        this[j][i].mine = random() > p
+        this[j][i].state = SpotState.Hidden
+    }
+
 }

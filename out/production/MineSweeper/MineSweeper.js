@@ -3,101 +3,162 @@ if (typeof kotlin === 'undefined') {
 }
 var MineSweeper = function (_, Kotlin) {
   'use strict';
-  var throwCCE = Kotlin.throwCCE;
-  var Unit = Kotlin.kotlin.Unit;
   var ensureNotNull = Kotlin.ensureNotNull;
-  var println = Kotlin.kotlin.io.println_s8jyv4$;
-  var Enum = Kotlin.kotlin.Enum;
-  var Kind_CLASS = Kotlin.Kind.CLASS;
-  var throwISE = Kotlin.throwISE;
+  var Unit = Kotlin.kotlin.Unit;
+  var throwCCE = Kotlin.throwCCE;
   var asList = Kotlin.kotlin.collections.asList_us0mfu$;
+  var Kind_CLASS = Kotlin.Kind.CLASS;
+  var Enum = Kotlin.kotlin.Enum;
+  var throwISE = Kotlin.throwISE;
   var List = Kotlin.kotlin.collections.List;
   var Iterator = Kotlin.kotlin.collections.Iterator;
   var Pair = Kotlin.kotlin.Pair;
+  var toInt = Kotlin.kotlin.text.toInt_pdl1vz$;
   var split = Kotlin.kotlin.text.split_o64adg$;
+  var iterator = Kotlin.kotlin.text.iterator_gw00vp$;
+  var unboxChar = Kotlin.unboxChar;
+  EditField.prototype = Object.create(ButtonField.prototype);
+  EditField.prototype.constructor = EditField;
   SpotState.prototype = Object.create(Enum.prototype);
   SpotState.prototype.constructor = SpotState;
-  var f;
+  PlayField.prototype = Object.create(ButtonField.prototype);
+  PlayField.prototype.constructor = PlayField;
   var Array_0 = Array;
-  var buttons;
-  function main$lambda(it) {
-    setUpField(f);
-    return Unit;
-  }
-  function main(args) {
-    window.onload = main$lambda;
-  }
-  function clicked(x, y) {
-    if (f.get_za3lpa$(y).get_za3lpa$(x).state === SpotState$Hidden_getInstance())
-      f.get_za3lpa$(y).get_za3lpa$(x).state = SpotState$Flagged_getInstance();
-    else if (f.get_za3lpa$(y).get_za3lpa$(x).state === SpotState$Flagged_getInstance())
-      f.get_za3lpa$(y).get_za3lpa$(x).state = SpotState$Hidden_getInstance();
-    else {
-      unhide(f, x, y);
-      updateButtons();
+  function ButtonField(field, buttons) {
+    if (buttons === void 0) {
+      var array = Array_0(field.height);
+      var tmp$;
+      tmp$ = array.length - 1 | 0;
+      for (var i = 0; i <= tmp$; i++) {
+        var array_0 = Array_0(field.width);
+        var tmp$_0;
+        tmp$_0 = array_0.length - 1 | 0;
+        for (var i_0 = 0; i_0 <= tmp$_0; i_0++) {
+          var tmp$_1;
+          array_0[i_0] = Kotlin.isType(tmp$_1 = document.createElement('button'), HTMLButtonElement) ? tmp$_1 : throwCCE();
+        }
+        array[i] = asList(array_0);
+      }
+      buttons = asList(array);
     }
-    updateButton(x, y);
+    this.field_flcg4a$_0 = field;
+    this.buttons = buttons;
   }
-  function doubleClicked(x, y) {
-    unhide(f, x, y);
-    updateButtons();
-  }
-  function updateButtons() {
+  Object.defineProperty(ButtonField.prototype, 'field', {
+    get: function () {
+      return this.field_flcg4a$_0;
+    }
+  });
+  ButtonField.prototype.clicked_vux9f0$ = function (x, y) {
+    makeRandom(this.field, x, y);
+    unhide(this.field, x, y);
+    ensureNotNull(document.body).removeChild(ensureNotNull(document.getElementById('Minefield')));
+    (new PlayField(this.field)).setUpField();
+  };
+  ButtonField.prototype.doubleClicked_vux9f0$ = function (x, y) {
+  };
+  ButtonField.prototype.updateButtons = function () {
     var tmp$, tmp$_0;
-    tmp$ = f.height;
+    tmp$ = this.field.height;
     for (var y = 0; y < tmp$; y++) {
-      tmp$_0 = f.width;
+      tmp$_0 = this.field.width;
       for (var x = 0; x < tmp$_0; x++) {
-        updateButton(x, y);
+        this.updateButton_vux9f0$(x, y);
       }
     }
-  }
-  function updateButton(x, y) {
-    var spot = f.get_za3lpa$(y).get_za3lpa$(x);
-    var button = buttons[y][x];
+  };
+  ButtonField.prototype.updateButton_vux9f0$ = function (x, y) {
+    var spot = this.field.get_za3lpa$(y).get_za3lpa$(x);
+    var button = this.buttons.get_za3lpa$(y).get_za3lpa$(x);
+    button.textContent = getMines(this.field, x, y).toString();
     if (spot.state === SpotState$Shown_getInstance())
       if (spot.mine)
         button.id = 'mine';
-      else if (getMines(f, x, y) === 0)
-        buttons[y][x].id = 'zero';
+      else if (getMines(this.field, x, y) === 0)
+        button.id = 'zero';
       else
         button.id = 'empty';
     else if (spot.state === SpotState$Flagged_getInstance())
       button.id = 'flag';
     else
       button.id = 'hidden';
-  }
-  function setUpField$lambda(closure$col, closure$row) {
+  };
+  function ButtonField$setUpField$lambda(closure$col, closure$row, this$ButtonField) {
     return function (it) {
-      clicked(closure$col, closure$row);
+      this$ButtonField.clicked_vux9f0$(closure$col, closure$row);
       return Unit;
     };
   }
-  function setUpField$lambda_0(closure$col, closure$row) {
+  function ButtonField$setUpField$lambda_0(closure$col, closure$row, this$ButtonField) {
     return function (it) {
-      doubleClicked(closure$col, closure$row);
+      this$ButtonField.doubleClicked_vux9f0$(closure$col, closure$row);
       return Unit;
     };
   }
-  function setUpField(field) {
+  ButtonField.prototype.setUpField = function () {
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
     var main = Kotlin.isType(tmp$ = document.createElement('div'), HTMLDivElement) ? tmp$ : throwCCE();
-    tmp$_0 = field.size;
+    main.id = 'Minefield';
+    tmp$_0 = this.field.size;
     for (var row = 0; row < tmp$_0; row++) {
       var curRow = Kotlin.isType(tmp$_1 = document.createElement('div'), HTMLDivElement) ? tmp$_1 : throwCCE();
-      tmp$_2 = field.get_za3lpa$(0).size;
+      tmp$_2 = this.field.get_za3lpa$(0).size;
       for (var col = 0; col < tmp$_2; col++) {
-        var b = buttons[row][col];
-        b.textContent = getMines(f, col, row).toString();
-        updateButton(col, row);
-        b.onclick = setUpField$lambda(col, row);
-        b.ondblclick = setUpField$lambda_0(col, row);
+        var b = this.buttons.get_za3lpa$(row).get_za3lpa$(col);
+        this.updateButton_vux9f0$(col, row);
+        b.onclick = ButtonField$setUpField$lambda(col, row, this);
+        b.ondblclick = ButtonField$setUpField$lambda_0(col, row, this);
         curRow.appendChild(b);
       }
       main.appendChild(curRow);
     }
     ensureNotNull(document.body).appendChild(main);
-    println(serialize(f));
+  };
+  ButtonField.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'ButtonField',
+    interfaces: []
+  };
+  function EditField(field) {
+    ButtonField.call(this, field);
+    this.field_z97g76$_0 = field;
+  }
+  Object.defineProperty(EditField.prototype, 'field', {
+    get: function () {
+      return this.field_z97g76$_0;
+    }
+  });
+  EditField.prototype.clicked_vux9f0$ = function (x, y) {
+    this.field.get_za3lpa$(y).get_za3lpa$(x).mine = !this.field.get_za3lpa$(y).get_za3lpa$(x).mine;
+    this.updateButtons();
+  };
+  EditField.prototype.updateButton_vux9f0$ = function (x, y) {
+    var spot = this.field.get_za3lpa$(y).get_za3lpa$(x);
+    var button = this.buttons.get_za3lpa$(y).get_za3lpa$(x);
+    var mines = getMines(this.field, x, y);
+    button.textContent = mines.toString();
+    if (spot.mine)
+      button.id = 'mine';
+    else if (mines === 0)
+      button.id = 'zero';
+    else
+      button.id = 'empty';
+  };
+  EditField.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'EditField',
+    interfaces: [ButtonField]
+  };
+  function main$lambda(closure$buttons) {
+    return function (it) {
+      closure$buttons.setUpField();
+      return Unit;
+    };
+  }
+  function main(args) {
+    var mainField = deserialize(serialize(fromASCII('[X[X[X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[X] [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[X[X[X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ ] [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [ [ [ [ [X[X[ [X[X[ [ [ [ [ \n' + '[ [ [ [ [ [ [X[ [ [ [X[ [ [ [ [ \n' + '[ [ [X[X[X[X[X[ [ [ [X[X[ [ [ [ ')));
+    var buttons = new ButtonField(new Minefield(15, 15));
+    window.onload = main$lambda(buttons);
   }
   function SpotState(name, ordinal) {
     Enum.call(this);
@@ -269,13 +330,15 @@ var MineSweeper = function (_, Kotlin) {
     this.y = 0;
   }
   toIterator$ObjectLiteral.prototype.next = function () {
-    if (this.x < (this.closure$a.width - 1 | 0))
+    var result = this.closure$a.get_za3lpa$(this.y).get_za3lpa$(this.x);
+    if (this.x < (this.closure$a.width - 1 | 0)) {
       this.x = this.x + 1 | 0;
-    else {
+    }
+     else {
       this.x = 0;
       this.y = this.y + 1 | 0;
     }
-    return this.closure$a.get_za3lpa$(this.y).get_za3lpa$(this.x);
+    return result;
   };
   toIterator$ObjectLiteral.prototype.hasNext = function () {
     return !(this.y === (this.closure$a.height - 1 | 0) && this.x === (this.closure$a.width - 1 | 0));
@@ -288,37 +351,44 @@ var MineSweeper = function (_, Kotlin) {
     var a = $receiver;
     return new toIterator$ObjectLiteral(a);
   }
-  function around$ObjectLiteral(closure$x, closure$a, closure$y) {
+  function around$ObjectLiteral(closure$x, closure$y, closure$width, closure$height) {
     this.closure$x = closure$x;
-    this.closure$a = closure$a;
     this.closure$y = closure$y;
-    this.lowI = (closure$x - 1 | 0) > 0 ? -1 : 0;
-    this.i = this.lowI;
-    this.j = (closure$y - 1 | 0) > 0 ? -1 : 0;
+    this.maxI = (closure$x + 1 | 0) < closure$width ? 1 : 0;
+    this.maxJ = (closure$y + 1 | 0) < closure$height ? 1 : 0;
+    this.minI = (closure$x - 1 | 0) >= 0 ? -1 : 0;
+    this.minJ = (closure$y - 1 | 0) >= 0 ? -1 : 0;
+    this.i = this.minI;
+    this.j = this.minJ;
   }
   around$ObjectLiteral.prototype.hasNext = function () {
-    println(this.i.toString() + ',' + this.j + ',' + (!(this.i === 1 && this.j === 1) || !((this.closure$x + this.i | 0) < (this.closure$a.width - 1 | 0) && (this.closure$y + this.j | 0) < (this.closure$a.height - 1 | 0))));
-    return !(this.i >= 1 && this.j >= 1);
+    return this.j <= this.maxJ;
   };
   around$ObjectLiteral.prototype.next = function () {
-    if (this.i < 1)
-      this.i = this.i + 1 | 0;
-    else {
-      this.i = this.lowI;
+    var next = new Pair(this.closure$x + this.i | 0, this.closure$y + this.j | 0);
+    this.squareNext();
+    if (this.i === 0 && this.j === 0)
+      this.squareNext();
+    return next;
+  };
+  around$ObjectLiteral.prototype.squareNext = function () {
+    this.i = this.i + 1 | 0;
+    if (this.i > this.maxI) {
+      this.i = this.minI;
       this.j = this.j + 1 | 0;
     }
-    if (this.i === 0 && this.j === 0)
-      this.i = 1;
-    return new Pair(this.i + this.closure$x | 0, this.j + this.closure$y | 0);
   };
   around$ObjectLiteral.$metadata$ = {
     kind: Kind_CLASS,
     interfaces: [Iterator]
   };
   function around($receiver, x, y) {
-    var a = $receiver;
-    println(x.toString() + ',' + y);
-    return new around$ObjectLiteral(x, a, y);
+    var height = $receiver.height;
+    var width = $receiver.width;
+    var iter = new around$ObjectLiteral(x, y, width, height);
+    if (iter.minI === 0 && iter.minJ === 0)
+      iter.squareNext();
+    return iter;
   }
   function getMines($receiver, x, y) {
     var tmp$;
@@ -334,115 +404,229 @@ var MineSweeper = function (_, Kotlin) {
     return result;
   }
   function getFlags($receiver, x, y) {
+    var tmp$;
     var result = 0;
-    for (var i = -1; i <= 1; i++) {
-      for (var j = -1; j <= 1; j++) {
-        if (i === 0 && j === 0)
-          continue;
-        if ((y + i | 0) < 0 || (y + i | 0) >= $receiver.size)
-          continue;
-        if ((x + j | 0) < 0 || (x + j | 0) >= $receiver.get_za3lpa$(0).size)
-          continue;
-        if ($receiver.get_za3lpa$(y + i | 0).get_za3lpa$(x + j | 0).state === SpotState$Flagged_getInstance())
-          result = result + 1 | 0;
-      }
+    tmp$ = around($receiver, x, y);
+    while (tmp$.hasNext()) {
+      var tmp$_0 = tmp$.next();
+      var i = tmp$_0.component1()
+      , j = tmp$_0.component2();
+      if ($receiver.get_za3lpa$(j).get_za3lpa$(i).state === SpotState$Flagged_getInstance())
+        result = result + 1 | 0;
     }
     return result;
   }
   function unhide($receiver, x, y) {
+    var tmp$;
     $receiver.get_za3lpa$(y).get_za3lpa$(x).state = SpotState$Shown_getInstance();
-    for (var i = -1; i <= 1; i++) {
-      for (var j = -1; j <= 1; j++) {
-        if (i === 0 && j === 0)
-          continue;
-        if ((y + i | 0) < 0 || (y + i | 0) >= $receiver.size)
-          continue;
-        if ((x + j | 0) < 0 || (x + j | 0) >= $receiver.get_za3lpa$(0).size)
-          continue;
-        if (getFlags($receiver, x, y) !== getMines($receiver, x, y))
-          continue;
-        if ($receiver.get_za3lpa$(y + i | 0).get_za3lpa$(x + j | 0).state === SpotState$Hidden_getInstance())
-          unhide($receiver, x + j | 0, y + i | 0);
-      }
+    tmp$ = around($receiver, x, y);
+    while (tmp$.hasNext()) {
+      var tmp$_0 = tmp$.next();
+      var i = tmp$_0.component1()
+      , j = tmp$_0.component2();
+      if (getFlags($receiver, x, y) !== getMines($receiver, x, y))
+        break;
+      if ($receiver.get_za3lpa$(j).get_za3lpa$(i).state === SpotState$Hidden_getInstance())
+        unhide($receiver, i, j);
     }
   }
   function serialize$numerify(spot) {
     var result = 0;
     if (spot.mine)
       result = result + 1 | 0;
-    if (spot.state === SpotState$Hidden_getInstance())
-      result = result + 2 | 0;
-    else if (spot.state === SpotState$Flagged_getInstance())
-      result = result + 4 | 0;
+    var tmp$;
+    tmp$ = result;
+    var tmp$_0;
+    switch (spot.state.name) {
+      case 'Shown':
+        tmp$_0 = SpotState$Shown_getInstance().ordinal * 2 | 0;
+        break;
+      case 'Hidden':
+        tmp$_0 = SpotState$Hidden_getInstance().ordinal * 2 | 0;
+        break;
+      case 'Flagged':
+        tmp$_0 = SpotState$Flagged_getInstance().ordinal * 2 | 0;
+        break;
+      default:tmp$_0 = Kotlin.noWhenBranchMatched();
+        break;
+    }
+    result = tmp$ + tmp$_0 | 0;
     return result;
   }
   function serialize$base36(n) {
-    if (n < 10)
-      return n.toString().charCodeAt(0);
-    else if (n === 10)
-      return 97;
-    else if (n === 11)
-      return 98;
-    else if (n === 12)
-      return 99;
-    else if (n === 13)
-      return 100;
-    else if (n === 14)
-      return 101;
-    else if (n === 15)
-      return 102;
-    else if (n === 16)
-      return 103;
-    else if (n === 17)
-      return 104;
-    else if (n === 18)
-      return 105;
-    else if (n === 19)
-      return 106;
-    else if (n === 20)
-      return 107;
-    else if (n === 21)
-      return 108;
-    else if (n === 22)
-      return 109;
-    else if (n === 23)
-      return 110;
-    else if (n === 24)
-      return 111;
-    else if (n === 25)
-      return 112;
-    else if (n === 26)
-      return 113;
-    else if (n === 27)
-      return 114;
-    else if (n === 28)
-      return 115;
-    else if (n === 29)
-      return 116;
-    else if (n === 30)
-      return 117;
-    else if (n === 31)
-      return 118;
-    else if (n === 32)
-      return 119;
-    else if (n === 33)
-      return 120;
-    else if (n === 34)
-      return 121;
-    else
-      return 122;
+    switch (n) {
+      case 10:
+        return 97;
+      case 11:
+        return 98;
+      case 12:
+        return 99;
+      case 13:
+        return 100;
+      case 14:
+        return 101;
+      case 15:
+        return 102;
+      case 16:
+        return 103;
+      case 17:
+        return 104;
+      case 18:
+        return 105;
+      case 19:
+        return 106;
+      case 20:
+        return 107;
+      case 21:
+        return 108;
+      case 22:
+        return 109;
+      case 23:
+        return 110;
+      case 24:
+        return 111;
+      case 25:
+        return 112;
+      case 26:
+        return 113;
+      case 27:
+        return 114;
+      case 28:
+        return 115;
+      case 29:
+        return 116;
+      case 30:
+        return 117;
+      case 31:
+        return 118;
+      case 32:
+        return 119;
+      case 33:
+        return 120;
+      case 34:
+        return 121;
+      case 35:
+        return 122;
+      default:return n.toString().charCodeAt(0);
+    }
   }
   function serialize(f) {
     var numerify = serialize$numerify;
     var base36 = serialize$base36;
     var result = f.width.toString() + ' ';
     var iter = toIterator(f);
+    var i = 0;
     while (iter.hasNext()) {
       var s = iter.next();
-      var asd = numerify(s);
-      if (iter.hasNext())
-        asd = asd + (6 * numerify(iter.next()) | 0) | 0;
-      result += String.fromCharCode(base36(asd));
+      var num = numerify(s);
+      if (iter.hasNext() && i < f.width)
+        num = num + (6 * numerify(iter.next()) | 0) | 0;
+      else
+        i = 0;
+      result += String.fromCharCode(base36(num));
+    }
+    return result;
+  }
+  function deserialize$denumerify(n) {
+    var tmp$;
+    var statenum = n / 2 | 0;
+    if (statenum === SpotState$Shown_getInstance().ordinal)
+      tmp$ = SpotState$Shown_getInstance();
+    else if (statenum === SpotState$Hidden_getInstance().ordinal)
+      tmp$ = SpotState$Hidden_getInstance();
+    else
+      tmp$ = SpotState$Flagged_getInstance();
+    return new Spot(tmp$, n % 2 === 1);
+  }
+  function deserialize$base36(n) {
+    switch (n) {
+      case 97:
+        return 10;
+      case 98:
+        return 11;
+      case 99:
+        return 12;
+      case 100:
+        return 13;
+      case 101:
+        return 14;
+      case 102:
+        return 15;
+      case 103:
+        return 16;
+      case 104:
+        return 17;
+      case 105:
+        return 18;
+      case 106:
+        return 19;
+      case 107:
+        return 20;
+      case 108:
+        return 21;
+      case 109:
+        return 22;
+      case 110:
+        return 23;
+      case 111:
+        return 24;
+      case 112:
+        return 25;
+      case 113:
+        return 26;
+      case 114:
+        return 27;
+      case 115:
+        return 28;
+      case 116:
+        return 29;
+      case 117:
+        return 30;
+      case 118:
+        return 31;
+      case 119:
+        return 32;
+      case 120:
+        return 33;
+      case 121:
+        return 34;
+      case 122:
+        return 35;
+      default:return toInt(String.fromCharCode(n));
+    }
+  }
+  function deserialize(data) {
+    var tmp$;
+    var denumerify = deserialize$denumerify;
+    var base36 = deserialize$base36;
+    var asd = split(data, Kotlin.charArrayOf(32));
+    var field = asd.get_za3lpa$(1);
+    var width = toInt(asd.get_za3lpa$(0));
+    var height = (field.length / width | 0) * 2 | 0;
+    var result = new Minefield(width, height);
+    var i = 0;
+    var j = 0;
+    tmp$ = iterator(field);
+    while (tmp$.hasNext()) {
+      var c = unboxChar(tmp$.next());
+      var num = base36(c);
+      var spot1 = denumerify(num % 6);
+      result.get_za3lpa$(j).get_za3lpa$(i).state = spot1.state;
+      result.get_za3lpa$(j).get_za3lpa$(i).mine = spot1.mine;
+      i = i + 1 | 0;
+      if (i > (width - 1 | 0)) {
+        i = 0;
+        j = j + 1 | 0;
+        continue;
+      }
+      var spot2 = denumerify((num - num % 6 | 0) / 6 | 0);
+      result.get_za3lpa$(j).get_za3lpa$(i).state = spot2.state;
+      result.get_za3lpa$(j).get_za3lpa$(i).mine = spot2.mine;
+      i = i + 1 | 0;
+      if (i > (width - 1 | 0)) {
+        i = 0;
+        j = j + 1 | 0;
+      }
     }
     return result;
   }
@@ -476,22 +660,70 @@ var MineSweeper = function (_, Kotlin) {
     }
     return new Minefield(width, height, field);
   }
-  Object.defineProperty(_, 'f', {
+  function makeRandom($receiver, x, y) {
+    var tmp$, tmp$_0;
+    tmp$ = toIterator($receiver);
+    while (tmp$.hasNext()) {
+      var s = tmp$.next();
+      s.mine = Math.random() < 0.3;
+    }
+    tmp$_0 = around($receiver, x, y);
+    while (tmp$_0.hasNext()) {
+      var tmp$_1 = tmp$_0.next();
+      var a = tmp$_1.component1()
+      , b = tmp$_1.component2();
+      $receiver.get_za3lpa$(b).get_za3lpa$(a).mine = false;
+    }
+    $receiver.get_za3lpa$(y).get_za3lpa$(x).mine = false;
+  }
+  function PlayField(field) {
+    ButtonField.call(this, field);
+    this.field_s3yy6w$_0 = field;
+  }
+  Object.defineProperty(PlayField.prototype, 'field', {
     get: function () {
-      return f;
+      return this.field_s3yy6w$_0;
     }
   });
-  Object.defineProperty(_, 'buttons', {
-    get: function () {
-      return buttons;
+  PlayField.prototype.clicked_vux9f0$ = function (x, y) {
+    if (this.field.get_za3lpa$(y).get_za3lpa$(x).state === SpotState$Hidden_getInstance())
+      this.field.get_za3lpa$(y).get_za3lpa$(x).state = SpotState$Flagged_getInstance();
+    else if (this.field.get_za3lpa$(y).get_za3lpa$(x).state === SpotState$Flagged_getInstance())
+      this.field.get_za3lpa$(y).get_za3lpa$(x).state = SpotState$Hidden_getInstance();
+    else {
+      unhide(this.field, x, y);
+      this.updateButtons();
     }
-  });
+    this.updateButton_vux9f0$(x, y);
+  };
+  PlayField.prototype.doubleClicked_vux9f0$ = function (x, y) {
+    unhide(this.field, x, y);
+    this.updateButtons();
+  };
+  PlayField.prototype.updateButton_vux9f0$ = function (x, y) {
+    var spot = this.field.get_za3lpa$(y).get_za3lpa$(x);
+    var button = this.buttons.get_za3lpa$(y).get_za3lpa$(x);
+    button.textContent = getMines(this.field, x, y).toString();
+    if (spot.state === SpotState$Shown_getInstance())
+      if (spot.mine)
+        button.id = 'mine';
+      else if (getMines(this.field, x, y) === 0)
+        button.id = 'zero';
+      else
+        button.id = 'empty';
+    else if (spot.state === SpotState$Flagged_getInstance())
+      button.id = 'flag';
+    else
+      button.id = 'hidden';
+  };
+  PlayField.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'PlayField',
+    interfaces: [ButtonField]
+  };
+  _.ButtonField = ButtonField;
+  _.EditField = EditField;
   _.main_kand9s$ = main;
-  _.clicked_vux9f0$ = clicked;
-  _.doubleClicked_vux9f0$ = doubleClicked;
-  _.updateButtons = updateButtons;
-  _.updateButton_vux9f0$ = updateButton;
-  _.setUpField_qcoihl$ = setUpField;
   Object.defineProperty(SpotState, 'Hidden', {
     get: SpotState$Hidden_getInstance
   });
@@ -510,22 +742,10 @@ var MineSweeper = function (_, Kotlin) {
   _.getFlags_y99o70$ = getFlags;
   _.unhide_y99o70$ = unhide;
   _.serialize_qcoihl$ = serialize;
+  _.deserialize_61zpoe$ = deserialize;
   _.fromASCII_61zpoe$ = fromASCII;
-  f = fromASCII('[X[X[X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[X] [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[X[X[X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ ] [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [X[ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ \n' + '[ [ [ [ [ [ [X[X[ [X[X[ [ [ [ [ \n' + '[ [ [ [ [ [ [X[ [ [ [X[ [ [ [ [ \n' + '[ [ [X[X[X[X[X[ [ [ [X[X[ [ [ [ ');
-  var array = Array_0(f.size);
-  var tmp$;
-  tmp$ = array.length - 1 | 0;
-  for (var i = 0; i <= tmp$; i++) {
-    var array_0 = Array_0(f.get_za3lpa$(0).size);
-    var tmp$_0;
-    tmp$_0 = array_0.length - 1 | 0;
-    for (var i_0 = 0; i_0 <= tmp$_0; i_0++) {
-      var tmp$_1;
-      array_0[i_0] = Kotlin.isType(tmp$_1 = document.createElement('button'), HTMLButtonElement) ? tmp$_1 : throwCCE();
-    }
-    array[i] = array_0;
-  }
-  buttons = array;
+  _.makeRandom_y99o70$ = makeRandom;
+  _.PlayField = PlayField;
   main([]);
   Kotlin.defineModule('MineSweeper', _);
   return _;

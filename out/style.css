@@ -35,3 +35,8 @@ div {
     margin: 0em;
     padding: 0em;
 }
+
+#Minefield {
+    margin: auto;
+    display: table;
+}
