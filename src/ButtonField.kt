@@ -2,11 +2,12 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import kotlin.browser.document
 
-open class ButtonField (open val field: Minefield,
-                        val buttons: List<List<HTMLButtonElement>> = Array(field.height) { Array(field.width) { document.createElement("button") as HTMLButtonElement }.asList() }.asList()
+open class ButtonField(open val field: Minefield,
+                       val buttons: List<List<HTMLButtonElement>> = Array(field.height) {
+                           Array(field.width) { document.createElement("button") as HTMLButtonElement }.asList()
+                       }.asList()
 ) {
     open fun clicked(x: Int, y: Int) {
-        field.makeRandom(x, y)
         field.unhide(x, y)
         document.body!!.removeChild(document.getElementById("Minefield")!!)
         PlayField(field).setUpField()
@@ -30,6 +31,7 @@ open class ButtonField (open val field: Minefield,
         when {
             spot.state == SpotState.Shown -> when {
                 spot.mine -> button.id = "mine"
+                spot.unknown -> button.id = "unknown"
                 field.getMines(x, y) == 0 -> button.id = "zero"
                 else -> button.id = "empty"
             }
@@ -43,7 +45,7 @@ open class ButtonField (open val field: Minefield,
         main.id = "Minefield"
         for (row in 0 until field.size) {
             var curRow = document.createElement("div") as HTMLDivElement
-            for(col in 0 until field[0].size) {
+            for (col in 0 until field[0].size) {
                 var b = buttons[row][col]
                 updateButton(col, row)
                 b.onclick = { clicked(col, row) }

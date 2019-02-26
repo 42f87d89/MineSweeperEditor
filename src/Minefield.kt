@@ -89,7 +89,7 @@ fun Minefield.getFlags(x: Int, y: Int): Int {
 }
 
 fun Minefield.unhide(x: Int, y: Int) {
-    if(this[y][x].state == SpotState.Hidden) this[y][x].state = SpotState.Shown
+    if (this[y][x].state == SpotState.Hidden) this[y][x].state = SpotState.Shown
     for ((i, j) in this.around(x, y)) {
         if (getFlags(x, y) != getMines(x, y)) break
         if (this[j][i].state == SpotState.Hidden) unhide(i, j)
@@ -97,10 +97,10 @@ fun Minefield.unhide(x: Int, y: Int) {
 
 }
 
-var MINE_BIT =    0b0001.toUByte()
+var MINE_BIT = 0b0001.toUByte()
 var UNKNOWN_BIT = 0b0010.toUByte()
-var SHOWN_BIT =   0b0100.toUByte()
-var FLAG_BIT =    0b1000.toUByte()
+var SHOWN_BIT = 0b0100.toUByte()
+var FLAG_BIT = 0b1000.toUByte()
 
 fun numerify(spot: Spot): UByte {
     var result: UByte = (0).toUByte()
@@ -113,8 +113,8 @@ fun numerify(spot: Spot): UByte {
     }
     return result
 }
-fun serialize(f: Minefield): String {
 
+fun serialize(f: Minefield): String {
     var result = "${f.width} "
     var iter = f.toIterator()
     for (s in iter) {
@@ -136,6 +136,7 @@ fun denumerify(n: UByte): Spot {
     }
     return result
 }
+
 fun deserialize(data: String): Minefield {
     val _data = data.split(' ')
     val data = _data.iterator()

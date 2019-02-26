@@ -1,4 +1,4 @@
-class EditField(override val field: Minefield): ButtonField(field) {
+class EditField(override val field: Minefield) : ButtonField(field) {
     override fun clicked(x: Int, y: Int) {
         field[y][x].mine = !field[y][x].mine
         updateButtons()

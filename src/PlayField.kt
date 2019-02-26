@@ -1,4 +1,4 @@
-open class PlayField (override val field: Minefield): ButtonField(field) {
+open class PlayField(override val field: Minefield) : ButtonField(field) {
     override fun clicked(x: Int, y: Int) {
         when {
             field[y][x].state == SpotState.Hidden -> field[y][x].state = SpotState.Flagged
