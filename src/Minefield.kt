@@ -1,4 +1,4 @@
-import kotlin.js.Math.random;
+import kotlin.random.Random
 
 enum class SpotState {
     Hidden,
@@ -6,12 +6,12 @@ enum class SpotState {
     Flagged
 }
 
-data class Spot(var state: SpotState, var mine: Boolean)
+data class Spot(var state: SpotState = SpotState.Hidden, var mine: Boolean = false, var unknown: Boolean = false)
 
-typealias Field = List<List<Spot>>
+typealias Field = List<MutableList<Spot>>
 
 data class Minefield(val width: Int, val height: Int,
-                     var mines: Field = Array(height) { Array(width) { Spot(SpotState.Hidden, false) }.asList() }.asList()
+                     val mines: Field = Array(height) { Array(width) { Spot() }.toMutableList() }.asList()
 ) : Field by mines
 
 fun Minefield.toIterator(): Iterator<Spot> {
@@ -89,7 +89,7 @@ fun Minefield.getFlags(x: Int, y: Int): Int {
 }
 
 fun Minefield.unhide(x: Int, y: Int) {
-    this[y][x].state = SpotState.Shown
+    if(this[y][x].state == SpotState.Hidden) this[y][x].state = SpotState.Shown
     for ((i, j) in this.around(x, y)) {
         if (getFlags(x, y) != getMines(x, y)) break
         if (this[j][i].state == SpotState.Hidden) unhide(i, j)
@@ -97,135 +97,62 @@ fun Minefield.unhide(x: Int, y: Int) {
 
 }
 
-fun serialize(f: Minefield): String {
-    fun numerify(spot: Spot): Int {
-        var result = 0
-        if (spot.mine) result += 1
-        result += when (spot.state) {
-            SpotState.Shown -> SpotState.Shown.ordinal * 2
-            SpotState.Hidden -> SpotState.Hidden.ordinal * 2
-            SpotState.Flagged -> SpotState.Flagged.ordinal * 2
-        }
-        return result
-    }
+var MINE_BIT =    0b0001.toUByte()
+var UNKNOWN_BIT = 0b0010.toUByte()
+var SHOWN_BIT =   0b0100.toUByte()
+var FLAG_BIT =    0b1000.toUByte()
 
-    fun base36(n: Int): Char {
-        when (n) {
-            10 -> return 'a'
-            11 -> return 'b'
-            12 -> return 'c'
-            13 -> return 'd'
-            14 -> return 'e'
-            15 -> return 'f'
-            16 -> return 'g'
-            17 -> return 'h'
-            18 -> return 'i'
-            19 -> return 'j'
-            20 -> return 'k'
-            21 -> return 'l'
-            22 -> return 'm'
-            23 -> return 'n'
-            24 -> return 'o'
-            25 -> return 'p'
-            26 -> return 'q'
-            27 -> return 'r'
-            28 -> return 's'
-            29 -> return 't'
-            30 -> return 'u'
-            31 -> return 'v'
-            32 -> return 'w'
-            33 -> return 'x'
-            34 -> return 'y'
-            35 -> return 'z'
-            else -> return n.toString()[0]
-        }
+fun numerify(spot: Spot): UByte {
+    var result: UByte = (0).toUByte()
+    if (spot.mine) result = result or MINE_BIT
+    if (spot.unknown) result = result or UNKNOWN_BIT
+    result = result or when (spot.state) {
+        SpotState.Shown -> SHOWN_BIT
+        SpotState.Flagged -> FLAG_BIT
+        else -> 0.toUByte()
     }
+    return result
+}
+fun serialize(f: Minefield): String {
 
     var result = "${f.width} "
     var iter = f.toIterator()
-    var i = 0
     for (s in iter) {
-        var num = numerify(s)
-        if (iter.hasNext() && i < f.width) num += 6 * numerify(iter.next())
-        else i = 0
-        result += base36(num)
+        result += numerify(s).toString() + " "
     }
     return result
 }
 
+fun denumerify(n: UByte): Spot {
+    var result = Spot()
+
+    result.mine = n and MINE_BIT != 0.toUByte()
+    result.unknown = n and UNKNOWN_BIT != 0.toUByte()
+
+    result.state = when {
+        n and SHOWN_BIT != 0.toUByte() -> SpotState.Shown
+        n and FLAG_BIT != 0.toUByte() -> SpotState.Flagged
+        else -> SpotState.Hidden
+    }
+    return result
+}
 fun deserialize(data: String): Minefield {
-    fun denumerify(n: Int): Spot {
-        val statenum = n / 2
-        return Spot(
-                when (statenum) {
-                    SpotState.Shown.ordinal -> SpotState.Shown
-                    SpotState.Hidden.ordinal -> SpotState.Hidden
-                    else -> SpotState.Flagged
-                }
-                , n % 2 == 1)
-    }
-
-    fun base36(n: Char): Int {
-        when (n) {
-            'a' -> return 10
-            'b' -> return 11
-            'c' -> return 12
-            'd' -> return 13
-            'e' -> return 14
-            'f' -> return 15
-            'g' -> return 16
-            'h' -> return 17
-            'i' -> return 18
-            'j' -> return 19
-            'k' -> return 20
-            'l' -> return 21
-            'm' -> return 22
-            'n' -> return 23
-            'o' -> return 24
-            'p' -> return 25
-            'q' -> return 26
-            'r' -> return 27
-            's' -> return 28
-            't' -> return 29
-            'u' -> return 30
-            'v' -> return 31
-            'w' -> return 32
-            'x' -> return 33
-            'y' -> return 34
-            'z' -> return 35
-            else -> return n.toString().toInt()
-        }
-    }
-
-    val asd = data.split(' ')
-    val field = asd[1]
-    val width = asd[0].toInt()
-    val height = field.length / width * 2
+    val _data = data.split(' ')
+    val data = _data.iterator()
+    val width = data.next().toInt()
+    val height = _data.size / width
     val result = Minefield(width, height)
 
-    var i = 0
-    var j = 0
-    for (c in field) {
-        val num = base36(c)
-        val spot1 = denumerify(num % 6)
-        result[j][i].state = spot1.state
-        result[j][i].mine = spot1.mine
-        i += 1
-        if (i > width - 1) {
-            i = 0
-            j += 1
-            continue
-        }
-        val spot2 = denumerify((num - num % 6) / 6)
-        result[j][i].state = spot2.state
-        result[j][i].mine = spot2.mine
-        i += 1
-        if (i > width - 1) {
-            i = 0
-            j += 1
+    var row = 0
+    var col = 0
+    for (d in data) {
+        result.mines[row][col] = denumerify(d.toUByte())
+        col += 1
+        if (col >= width) {
+            col = 0
+            row += 1
         }
     }
-
     return result
 }
 
@@ -233,7 +160,7 @@ fun fromASCII(f: String): Minefield {
     val rows = f.split('\n')
     val width = rows[0].length / 2
     val height = rows.size
-    var field = Array(height) { Array(width) { Spot(SpotState.Hidden, false) }.asList() }.asList()
+    var field = Array(height) { Array(width) { Spot(SpotState.Hidden, false) }.toMutableList() }.asList()
     for (y in 0 until height) {
         for (x in 0 until width) {
             when {
@@ -250,7 +177,7 @@ fun fromASCII(f: String): Minefield {
 fun Minefield.makeRandom(x: Int, y: Int) {
     for (s in this.toIterator()) {
         s.state = SpotState.Hidden
-        s.mine = random() < 0.3
+        s.mine = Random.nextDouble() < 0.3
     }
     for ((a, b) in this.around(x, y)) {
         this[b][a].mine = false
@@ -283,7 +210,7 @@ fun Minefield.makeSolvable(x: Int, y: Int, p: Double) {
     }
 
     around { i, j ->
-        this[j][i].mine = random() > p
+        this[j][i].mine = Random.nextDouble() > p
         this[j][i].state = SpotState.Hidden
     }
 
