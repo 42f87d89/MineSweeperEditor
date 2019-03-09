@@ -89,13 +89,13 @@ fun Minefield.getFlags(x: Int, y: Int): Int {
 }
 
 fun Minefield.unhide(x: Int, y: Int): List<Pair<Int, Int>> {
-    val result = emptyList<Pair<Int, Int>>()
-    result.plus(Pair(x, y))
+    val result: MutableList<Pair<Int, Int>> = mutableListOf()
+    result.add(Pair(x, y))
     if (this[y][x].state == SpotState.Hidden) this[y][x].state = SpotState.Shown
     for ((i, j) in this.around(x, y)) {
         if (getFlags(x, y) != getMines(x, y)) break
         if (this[j][i].state == SpotState.Hidden) {
-            result.plus(unhide(i, j))
+            result.addAll(unhide(i, j))
         }
     }
     return result

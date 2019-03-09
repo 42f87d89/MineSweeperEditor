@@ -18,7 +18,7 @@ class ButtonField(private val minefield: Minefield) {
            document.createElement("button") as HTMLButtonElement
         }.asList()
     }.asList()
-    private var behaviour: Behaviour = Behaviour()
+    var behaviour: Behaviour = Behaviour()
 
     constructor(width: Int, height: Int) : this(Minefield(width, height))
 
@@ -59,8 +59,7 @@ class ButtonField(private val minefield: Minefield) {
                     r.forEach { (x, y) -> updateButton(x, y) }
                 }
                 b.ondblclick = {
-                    behaviour.doubleClicked(minefield, col, row)
-                    val r = behaviour.clicked(minefield, col, row)
+                    val r = behaviour.doubleClicked(minefield, col, row)
                     r.forEach { (x, y) -> updateButton(x, y) }
                 }
                 curRow.appendChild(b)
