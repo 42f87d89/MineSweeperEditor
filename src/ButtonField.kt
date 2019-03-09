@@ -2,37 +2,43 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import kotlin.browser.document
 
-open class ButtonField(open val field: Minefield,
-                       val buttons: List<List<HTMLButtonElement>> = Array(field.height) {
-                           Array(field.width) { document.createElement("button") as HTMLButtonElement }.asList()
-                       }.asList()
-) {
-    open fun clicked(x: Int, y: Int) {
-        field.unhide(x, y)
-        document.body!!.removeChild(document.getElementById("Minefield")!!)
-        PlayField(field).setUpField()
+open class Behaviour {
+    open fun clicked(field: Minefield, x: Int, y: Int): List<Pair<Int, Int>> {
+        return emptyList()
     }
 
-    open fun doubleClicked(x: Int, y: Int) {
+    open fun doubleClicked(field: Minefield, x: Int, y: Int): List<Pair<Int, Int>> {
+        return emptyList()
     }
+}
 
-    fun updateButtons() {
-        for (y in 0 until field.height) {
-            for (x in 0 until field.width) {
+class ButtonField(private val minefield: Minefield) {
+    private val buttons = Array(minefield.size) {
+        Array(minefield[0].size) {
+           document.createElement("button") as HTMLButtonElement
+        }.asList()
+    }.asList()
+    private var behaviour: Behaviour = Behaviour()
+
+    constructor(width: Int, height: Int) : this(Minefield(width, height))
+
+    private fun updateButtons() {
+        for (y in 0 until minefield.height) {
+            for (x in 0 until minefield.width) {
                 updateButton(x, y)
             }
         }
     }
 
-    open fun updateButton(x: Int, y: Int) {
-        val spot = field[y][x]
+    private fun updateButton(x: Int, y: Int) {
+        val spot = minefield[y][x]
         val button = buttons[y][x]
-        button.textContent = field.getMines(x, y).toString()
+        button.textContent = minefield.getMines(x, y).toString()
         when {
             spot.state == SpotState.Shown -> when {
                 spot.mine -> button.id = "mine"
                 spot.unknown -> button.id = "unknown"
-                field.getMines(x, y) == 0 -> button.id = "zero"
+                minefield.getMines(x, y) == 0 -> button.id = "zero"
                 else -> button.id = "empty"
             }
             spot.state == SpotState.Flagged -> button.id = "flag"
@@ -43,17 +49,25 @@ open class ButtonField(open val field: Minefield,
     fun setUpField() {
         var main = document.createElement("div") as HTMLDivElement
         main.id = "Minefield"
-        for (row in 0 until field.size) {
+        for (row in 0 until buttons.size) {
             var curRow = document.createElement("div") as HTMLDivElement
-            for (col in 0 until field[0].size) {
+            for (col in 0 until buttons[0].size) {
                 var b = buttons[row][col]
                 updateButton(col, row)
-                b.onclick = { clicked(col, row) }
-                b.ondblclick = { doubleClicked(col, row) }
+                b.onclick = {
+                    val r = behaviour.clicked(minefield, col, row)
+                    r.forEach { (x, y) -> updateButton(x, y) }
+                }
+                b.ondblclick = {
+                    behaviour.doubleClicked(minefield, col, row)
+                    val r = behaviour.clicked(minefield, col, row)
+                    r.forEach { (x, y) -> updateButton(x, y) }
+                }
                 curRow.appendChild(b)
             }
             main.appendChild(curRow)
         }
+        updateButtons()
         document.body!!.appendChild(main)
     }
 }

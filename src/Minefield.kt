@@ -88,13 +88,17 @@ fun Minefield.getFlags(x: Int, y: Int): Int {
     return result
 }
 
-fun Minefield.unhide(x: Int, y: Int) {
+fun Minefield.unhide(x: Int, y: Int): List<Pair<Int, Int>> {
+    val result = emptyList<Pair<Int, Int>>()
+    result.plus(Pair(x, y))
     if (this[y][x].state == SpotState.Hidden) this[y][x].state = SpotState.Shown
     for ((i, j) in this.around(x, y)) {
         if (getFlags(x, y) != getMines(x, y)) break
-        if (this[j][i].state == SpotState.Hidden) unhide(i, j)
+        if (this[j][i].state == SpotState.Hidden) {
+            result.plus(unhide(i, j))
+        }
     }
-
+    return result
 }
 
 var MINE_BIT = 0b0001.toUByte()
@@ -157,24 +161,6 @@ fun deserialize(data: String): Minefield {
     return result
 }
 
-fun fromASCII(f: String): Minefield {
-    val rows = f.split('\n')
-    val width = rows[0].length / 2
-    val height = rows.size
-    var field = Array(height) { Array(width) { Spot(SpotState.Hidden, false) }.toMutableList() }.asList()
-    for (y in 0 until height) {
-        for (x in 0 until width) {
-            when {
-                rows[y][x * 2] == '[' -> field[y][x].state = SpotState.Hidden
-                rows[y][x * 2] == 'F' -> field[y][x].state = SpotState.Flagged
-                else -> field[y][x].state = SpotState.Shown
-            }
-            field[y][x].mine = rows[y][x * 2 + 1] == 'X'
-        }
-    }
-    return Minefield(width, height, field)
-}
-
 fun Minefield.makeRandom(x: Int, y: Int) {
     for (s in this.toIterator()) {
         s.state = SpotState.Hidden
@@ -216,3 +202,21 @@ fun Minefield.makeSolvable(x: Int, y: Int, p: Double) {
     }
 
 }
+
+/*fun fromASCII(f: String): Minefield {
+    val rows = f.split('\n')
+    val width = rows[0].length / 2
+    val height = rows.size
+    var field = Array(height) { Array(width) { Spot(SpotState.Hidden, false) }.toMutableList() }.asList()
+    for (y in 0 until height) {
+        for (x in 0 until width) {
+            when {
+                rows[y][x * 2] == '[' -> field[y][x].state = SpotState.Hidden
+                rows[y][x * 2] == 'F' -> field[y][x].state = SpotState.Flagged
+                else -> field[y][x].state = SpotState.Shown
+            }
+            field[y][x].mine = rows[y][x * 2 + 1] == 'X'
+        }
+    }
+    return Minefield(width, height, field)
+}*/
