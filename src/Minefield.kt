@@ -101,66 +101,6 @@ fun Minefield.unhide(x: Int, y: Int): List<Pair<Int, Int>> {
     return result
 }
 
-var MINE_BIT = 0b0001.toUByte()
-var UNKNOWN_BIT = 0b0010.toUByte()
-var SHOWN_BIT = 0b0100.toUByte()
-var FLAG_BIT = 0b1000.toUByte()
-
-fun numerify(spot: Spot): UByte {
-    var result: UByte = (0).toUByte()
-    if (spot.mine) result = result or MINE_BIT
-    if (spot.unknown) result = result or UNKNOWN_BIT
-    result = result or when (spot.state) {
-        SpotState.Shown -> SHOWN_BIT
-        SpotState.Flagged -> FLAG_BIT
-        else -> 0.toUByte()
-    }
-    return result
-}
-
-fun serialize(f: Minefield): String {
-    var result = "${f.width} "
-    var iter = f.toIterator()
-    for (s in iter) {
-        result += numerify(s).toString() + " "
-    }
-    return result
-}
-
-fun denumerify(n: UByte): Spot {
-    var result = Spot()
-
-    result.mine = n and MINE_BIT != 0.toUByte()
-    result.unknown = n and UNKNOWN_BIT != 0.toUByte()
-
-    result.state = when {
-        n and SHOWN_BIT != 0.toUByte() -> SpotState.Shown
-        n and FLAG_BIT != 0.toUByte() -> SpotState.Flagged
-        else -> SpotState.Hidden
-    }
-    return result
-}
-
-fun deserialize(data: String): Minefield {
-    val _data = data.split(' ')
-    val data = _data.iterator()
-    val width = data.next().toInt()
-    val height = _data.size / width
-    val result = Minefield(width, height)
-
-    var row = 0
-    var col = 0
-    for (d in data) {
-        result.mines[row][col] = denumerify(d.toUByte())
-        col += 1
-        if (col >= width) {
-            col = 0
-            row += 1
-        }
-    }
-    return result
-}
-
 fun Minefield.makeRandom(x: Int, y: Int) {
     for (s in this.toIterator()) {
         s.state = SpotState.Hidden
@@ -203,20 +143,66 @@ fun Minefield.makeSolvable(x: Int, y: Int, p: Double) {
 
 }
 
-/*fun fromASCII(f: String): Minefield {
-    val rows = f.split('\n')
-    val width = rows[0].length / 2
-    val height = rows.size
-    var field = Array(height) { Array(width) { Spot(SpotState.Hidden, false) }.toMutableList() }.asList()
-    for (y in 0 until height) {
-        for (x in 0 until width) {
-            when {
-                rows[y][x * 2] == '[' -> field[y][x].state = SpotState.Hidden
-                rows[y][x * 2] == 'F' -> field[y][x].state = SpotState.Flagged
-                else -> field[y][x].state = SpotState.Shown
-            }
-            field[y][x].mine = rows[y][x * 2 + 1] == 'X'
+@ExperimentalUnsignedTypes
+object Serializer {
+    private var MINE_BIT = 0b0001.toUByte()
+    private var UNKNOWN_BIT = 0b0010.toUByte()
+    private var SHOWN_BIT = 0b0100.toUByte()
+    private var FLAG_BIT = 0b1000.toUByte()
+
+    private fun numerify(spot: Spot): UByte {
+        var result: UByte = (0).toUByte()
+        if (spot.mine) result = result or MINE_BIT
+        if (spot.unknown) result = result or UNKNOWN_BIT
+        result = result or when (spot.state) {
+            SpotState.Shown -> SHOWN_BIT
+            SpotState.Flagged -> FLAG_BIT
+            else -> 0.toUByte()
         }
+        return result
     }
-    return Minefield(width, height, field)
-}*/
+
+    private fun denumerify(n: UByte): Spot {
+        val result = Spot()
+
+        result.mine = n and MINE_BIT != 0.toUByte()
+        result.unknown = n and UNKNOWN_BIT != 0.toUByte()
+
+        result.state = when {
+            n and SHOWN_BIT != 0.toUByte() -> SpotState.Shown
+            n and FLAG_BIT != 0.toUByte() -> SpotState.Flagged
+            else -> SpotState.Hidden
+        }
+        return result
+    }
+
+    fun serialize(f: Minefield): String {
+        var result = "${f.width} "
+        val iter = f.toIterator()
+        for (s in iter) {
+            result += numerify(s).toString() + " "
+        }
+        return result
+    }
+
+    fun deserialize(data: String): Minefield {
+        val _data = data.split(' ')
+        @Suppress("NAME_SHADOWING")
+        val data = _data.iterator()
+        val width = data.next().toInt()
+        val height = _data.size / width
+        val result = Minefield(width, height)
+
+        var row = 0
+        var col = 0
+        for (d in data) {
+            result.mines[row][col] = denumerify(d.toUByte())
+            col += 1
+            if (col >= width) {
+                col = 0
+                row += 1
+            }
+        }
+        return result
+    }
+}

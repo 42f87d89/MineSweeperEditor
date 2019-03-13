@@ -1,7 +1,8 @@
 import kotlin.browser.window
 
+@ExperimentalUnsignedTypes
 fun main(args: Array<String>) {
-    val field = deserialize("12 " +
+    val field = Serializer.deserialize("12 " +
             "1 0 0 0 0 0 0 5 0 0 0 0 " +
             "0 0 0 0 0 0 0 0 0 0 0 0 " +
             "0 0 2 0 0 0 0 4 0 0 0 0 " +
