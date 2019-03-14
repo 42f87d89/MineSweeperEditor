@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>Minesweeper</title>
@@ -8,6 +8,15 @@
     <link href="./style.css" rel="stylesheet">
 </head>
 <body>
-
+    <div id="content">
+        <input type="button" id="save" value="Save"/>
+        <input type="button" id="load" value="Load"/>
+        <input type="text" id="data"/>
+        <select id="mode">
+            <option value="Play Mode">Play Mode</option>
+            <option value="Edit Mode">Edit Mode</option>
+        </select>
+        <div id="Minefield"></div>
+    </div>
 </body>
 </html>

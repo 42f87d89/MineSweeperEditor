@@ -36,6 +36,11 @@ div {
     padding: 0em;
 }
 
+#content {
+    margin: auto;
+    display: table;
+}
+
 #Minefield {
     margin: auto;
     display: table;

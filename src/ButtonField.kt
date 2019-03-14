@@ -1,5 +1,7 @@
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import kotlin.browser.document
 
 open class Behaviour {
@@ -12,7 +14,7 @@ open class Behaviour {
     }
 }
 
-class ButtonField(private val minefield: Minefield) {
+class ButtonField(private var minefield: Minefield) {
     private val buttons = Array(minefield.size) {
         Array(minefield[0].size) {
            document.createElement("button") as HTMLButtonElement
@@ -47,8 +49,7 @@ class ButtonField(private val minefield: Minefield) {
     }
 
     fun setUpField() {
-        var main = document.createElement("div") as HTMLDivElement
-        main.id = "Minefield"
+        var main = document.getElementById("Minefield") as HTMLDivElement
         for (row in 0 until buttons.size) {
             var curRow = document.createElement("div") as HTMLDivElement
             for (col in 0 until buttons[0].size) {
@@ -67,6 +68,27 @@ class ButtonField(private val minefield: Minefield) {
             main.appendChild(curRow)
         }
         updateButtons()
-        document.body!!.appendChild(main)
+
+        val getById = {id: String -> document.getElementById(id)}
+
+        val saveButton = getById("save") as HTMLInputElement
+        val loadButton = getById("load") as HTMLInputElement
+        val dataBox = getById("data") as HTMLInputElement
+        val modeSelector = getById("mode") as HTMLSelectElement
+
+        saveButton.onclick = {
+            dataBox.value = Serializer.serialize(minefield)
+            Unit
+        }
+        loadButton.onclick = {
+            minefield = Serializer.deserialize(dataBox.value)
+            updateButtons()
+        }
+        modeSelector.onclick = {
+            when (modeSelector.value) {
+                "Edit Mode" -> behaviour = EditBehaviour
+                "Play Mode" -> behaviour = PlayBehaviour
+            }
+        }
     }
 }

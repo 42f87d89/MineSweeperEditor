@@ -186,7 +186,9 @@ object Serializer {
     }
 
     fun deserialize(data: String): Minefield {
-        val _data = data.split(' ')
+        val _data = data.split(' ').map {
+            s ->  s.filter { c -> listOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9').contains(c) }
+        }.filter { s -> s != "" }
         @Suppress("NAME_SHADOWING")
         val data = _data.iterator()
         val width = data.next().toInt()

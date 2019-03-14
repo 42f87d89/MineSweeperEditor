@@ -1,4 +1,4 @@
-open class PlayBehaviour: Behaviour() {
+object PlayBehaviour: Behaviour() {
     override fun clicked(field: Minefield, x: Int, y: Int): List<Pair<Int, Int>> {
         when(field[y][x].state) {
             SpotState.Hidden -> field[y][x].state = SpotState.Flagged
